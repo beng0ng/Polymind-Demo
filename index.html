@@ -582,10 +582,10 @@ table.data tr.hl td { font-weight: 600; }
       <div class="hero-copy">
         <div class="eyebrow">Reinforcement learning · The Battle of Polytopia</div>
         <h1 class="hero-title">PolyMind</h1>
-        <p class="hero-lede">An AI that learns to win one-on-one Polytopia. It plays on a rules engine rebuilt from public evidence, trains by self-play on ordinary CPUs, and checks its critical moves with a short lookahead search. You can play it right here.</p>
+        <p class="hero-lede">A reinforcement-learning AI for one-on-one Polytopia. It plays on a rules engine rebuilt from public evidence, learns by self-play on ordinary CPUs, and checks its critical moves with a short lookahead search.</p>
         <div class="hero-cta">
-          <a class="btn primary" href="#play">Play against the AI</a>
-          <a class="btn ghost" href="#methodology">How it works</a>
+          <a class="btn primary" href="#methodology">How it works</a>
+          <a class="btn ghost" href="#benchmarks">Benchmarks</a>
         </div>
       </div>
       <div class="hero-art" aria-hidden="true">
@@ -632,9 +632,9 @@ table.data tr.hl td { font-weight: 600; }
   <section class="ctaband" aria-labelledby="h-cta">
     <div class="band-in ctasplit">
       <div>
-        <h2 id="h-cta">Think you can beat Legion2?</h2>
-        <p>Play a full game in your browser against the strongest PolyMind model, or start with an easier opponent. Every game you finish can help the AI learn.</p>
-        <div class="hero-cta"><a class="btn primary" href="#play">Play now</a><a class="btn ghost" href="#benchmarks">Compare opponents</a></div>
+        <h2 id="h-cta">Legion2, the strongest model</h2>
+        <p>Legion2 is the Alpha1 network with a lookahead that searches more positions before critical moves and judges them with a win-probability head. It is rated 1,498, about 500 Elo above the scripted expert.</p>
+        <div class="hero-cta"><a class="btn primary" href="#benchmarks">See the benchmarks</a><a class="btn ghost" href="#training-process">Training process</a></div>
       </div>
       <img src="assets/board-midgame.webp" alt="A game in progress on the Training Ground board" width="1100" height="600" loading="lazy">
     </div>
@@ -711,7 +711,7 @@ table.data tr.hl td { font-weight: 600; }
       <details class="card help" id="help">
         <summary class="label">How to play</summary>
         <ul>
-          <li><b>The match</b>: one on one on a land-only 11×11 Drylands map, under the official 1v1 Might rules. Every game you finish can help the AI learn.</li>
+          <li><b>The match</b>: one on one on a land-only 11×11 Drylands map, under the official 1v1 Might rules.</li>
           <li><b>Win</b> by taking Bardur's capital: move a unit onto it, then use Capture.</li>
           <li><b>Stars</b> arrive every turn (the +number). Spend them on techs, units and tile improvements.</li>
           <li><b>Grow</b>: move a unit onto a village and Capture it on your next turn. Fruit, hunting and farms add population; a full city levels up and gives you a reward.</li>
@@ -805,7 +805,7 @@ table.data tr.hl td { font-weight: 600; }
 
     <h2>A rules engine built from evidence</h2>
     <p>Polytopia has no public simulator, so the project wrote its own. It covers map generation, tribes, cities, economy, technology, units, combat, fog of war and victory. Every rule is recorded with its source and an evidence level, and a rule changes only when new evidence or an in-game check supports the change.</p>
-    <p>The game you play here runs on a JavaScript port of the same engine. A test plays the Python and browser versions side by side and checks that they agree move for move.</p>
+    <p>The browser version runs on a JavaScript port of the same engine. A test plays the Python and browser versions side by side and checks that they agree move for move.</p>
 
     <h2>What the AI sees and does</h2>
     <p>The network reads the board from one player's point of view, through the fog. Its input is 67 feature planes, one value per tile for things like terrain, units, cities and borders, plus a vector of global numbers such as stars and turn. The output is a score for every possible action. On the 11×11 map that is 30,641 actions. Illegal actions are masked out before a move is chosen, so the AI only ever picks legal moves.</p>
@@ -1030,7 +1030,7 @@ table.data tr.hl td { font-weight: 600; }
         </table>
       </div>
     </details>
-    <a class="nextpage" href="#play"><span>Next</span><b>Play Bardur</b><em>Try your luck against Legion2</em></a>
+    <a class="nextpage" href="#methodology"><span>Back to the start</span><b>Methodology</b><em>How the AI is built</em></a>
   </article>
 </section>
 
