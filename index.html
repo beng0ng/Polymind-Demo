@@ -4,7 +4,7 @@
 <title>PolyMind</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
 /* The board is drawn as a Polytopia-style isometric world on a sea backdrop
    (the same in both themes); the panels around it follow the viewer's theme. */
@@ -12,7 +12,7 @@
   --bg: #eef0ec; --panel: #ffffff; --ink: #1d2422; --muted: #5d6965; --line: #d5dad6;
   --you: #128a7a; --bot: #c4462c; --gold: #b7861a; --danger: #b3261e; --btn: #e3e8e4;
   --sea-top: #2f8fb0; --sea-bottom: #1b5f86; --hud: rgba(10, 30, 45, .72); --hud-ink: #ffffff;
-  --font-display: "Chakra Petch", "Trebuchet MS", sans-serif;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
@@ -26,9 +26,9 @@
   --sea-top: #1d5f7c; --sea-bottom: #0f3a55; color-scheme: dark }
 * { box-sizing: border-box }
 body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; }
-.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 14px 28px; display: grid; gap: 14px; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px 28px; display: grid; gap: 14px; }
 header { display: grid; gap: 6px; }
-h1 { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; letter-spacing: .02em; margin: 0; text-wrap: balance; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; letter-spacing: -.01em; margin: 0; text-wrap: balance; }
 .sub { color: var(--muted); max-width: 70ch; }
 .main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: start; }
 @media (max-width: 900px) { .main { grid-template-columns: minmax(0, 1fr); } }
@@ -166,6 +166,14 @@ canvas:focus-visible { outline: 2px solid rgba(255,255,255,.45); outline-offset:
 .techinfo button:disabled { opacity: .45; cursor: default; }
 
 /* side rail */
+.oppbench { display: grid; gap: 7px; }
+.ob { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; font-size: .84rem; color: var(--muted); }
+.ob .v { font: 500 .82rem var(--font-mono); font-variant-numeric: tabular-nums; }
+.ob .b { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--btn); overflow: hidden; }
+.ob .b i { display: block; height: 100%; border-radius: 3px; background: var(--muted); opacity: .45; }
+.ob.cur { color: var(--ink); font-weight: 600; } .ob.cur .b i { background: var(--bot); opacity: 1; }
+.benchlink { color: var(--you); text-decoration: none; } .benchlink:hover { text-decoration: underline; }
+@media (min-width: 901px) and (min-height: 800px) { .main > .game { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 66px); } }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
 .rail { display: grid; gap: 12px; min-width: 0; }
 .label { font-family: var(--font-display); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
@@ -227,11 +235,418 @@ canvas:focus-visible { outline: 2px solid rgba(255,255,255,.45); outline-offset:
 .rail details[open] { display: grid; gap: 6px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } .bigbtn.end.pulse .disc, .tree .glow, .banner, .toast { animation: none !important; } .toast { opacity: 1; } }
 </style>
+<style>
+/* Site around the game. Layout: a dark sea-blue nav and hero (the board's own
+   world), then paper pages with one reading column; charts sit in panels. */
+:root {
+  --nav: #0d2433; --nav-ink: #e9f1f4; --cta: #128a7a; --nav-edge: #0a6b5f; --nav-muted: #9fb6c0;
+  --paper: var(--bg); --rule: var(--line);
+  --c-net: #2a78d6; --c-search: #eb6834; --c-oumaji: #6250d6; --c-scripted: #8f8e89; --c-grid: #e4e6e2;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --nav: #0b1c27; --nav-edge: #2b9c8c; --c-net: #3987e5; --c-search: #d95f2b; --c-oumaji: #8475ec; --c-scripted: #8a918e; --c-grid: #2c3734; } }
+:root[data-theme="dark"] {
+  --nav: #0b1c27; --nav-edge: #2b9c8c; --c-net: #3987e5; --c-search: #d95f2b; --c-oumaji: #8475ec; --c-scripted: #8a918e; --c-grid: #2c3734; }
+body { margin: 0; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--nav); }
+.num { font-variant-numeric: tabular-nums; }
 
+/* nav */
+.topnav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--nav); color: var(--nav-ink); border-bottom: 1px solid rgba(255,255,255,.08); }
+.topnav-in { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; gap: 18px; min-height: 54px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.brand { display: flex; align-items: center; gap: 9px; color: inherit; text-decoration: none; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; letter-spacing: .03em; flex: none; }
+.brand svg { width: 30px; height: 21px; }
+.navlinks { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin-left: auto; min-width: 0; }
+.navlinks::-webkit-scrollbar { display: none; }
+.navlinks a { color: var(--nav-muted); text-decoration: none; font-weight: 500; font-size: .9rem; padding: 8px 11px; border-radius: 7px; white-space: nowrap; }
+.navlinks a:hover { color: var(--nav-ink); background: rgba(255,255,255,.06); }
+.navlinks a[aria-current="page"] { color: var(--nav-ink); box-shadow: inset 0 -2px 0 var(--you); border-radius: 7px 7px 0 0; }
+.navlinks a[data-nav="play"] { color: #fff; background: var(--cta); margin-right: 6px; }
+.navlinks a[data-nav="play"]:hover { filter: brightness(1.08); }
+.navlinks a[data-nav="play"][aria-current="page"] { box-shadow: none; border-radius: 7px; }
+.topnav a:focus-visible, .btn:focus-visible, .tile:focus-visible { outline: 2px solid #ffd75e; outline-offset: 2px; }
+@media (max-width: 640px) { .topnav-in { gap: 10px; } .brand span { display: none; } .navlinks { margin-left: 0; } .navlinks a { padding: 8px 9px; font-size: .86rem; } }
+
+/* hero: the board on its sea */
+.hero { background: radial-gradient(110% 120% at 70% 30%, var(--sea-top), var(--sea-bottom) 70%, #0c2a3d); color: #fff; overflow: hidden; }
+.hero-in { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: center; gap: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 48px 12px; }
+.eyebrow { font-family: var(--font-display); font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--you); font-weight: 700; }
+.hero .eyebrow { color: #8fe3d4; }
+.hero-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(3rem, 7vw, 5.4rem); line-height: .95; letter-spacing: -.025em; margin: 10px 0 16px;
+  text-shadow: 0 4px 0 rgba(0,0,0,.22); }
+.hero-lede { font-size: 1.08rem; line-height: 1.6; max-width: 46ch; margin: 0; color: #e3eef2; }
+.hero-cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; font: 600 .95rem var(--font-body); padding: 11px 18px; border-radius: 9px; text-decoration: none; }
+.btn.primary { background: var(--cta); color: #fff; box-shadow: 0 3px 0 rgba(0,0,0,.25); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.55); }
+.btn.ghost:hover { background: rgba(255,255,255,.08); }
+.hero-art { position: relative; aspect-ratio: 11 / 6; max-width: 100%; }
+.hero-art .shot { position: absolute; inset: 0; width: 100%; height: auto; filter: drop-shadow(0 18px 24px rgba(0,0,0,.35)); animation: drift 14s ease-in-out infinite; }
+.hero-art .shot.b { animation: drift 14s ease-in-out infinite, swap 16s ease-in-out infinite; }
+@keyframes drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes swap { 0%, 42% { opacity: 0; } 50%, 92% { opacity: 1; } 100% { opacity: 0; } }
+.hero-facts { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 8px 10px; }
+.fact { display: grid; gap: 4px; padding: 14px 0 0; border-top: 1px solid rgba(255,255,255,.22); }
+.fact b { font-family: var(--font-mono); font-size: 1.7rem; font-weight: 500; }
+.fact span { font-size: .86rem; color: #cfe0e6; max-width: 34ch; }
+.hero-cap { max-width: 1240px; margin: 0 auto; font-size: .76rem; color: #a9c4ce;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 6px 22px; }
+@media (max-width: 820px) {
+  .hero-in { grid-template-columns: minmax(0, 1fr); padding-block: 32px 4px; }
+  .hero-facts { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .fact { grid-template-columns: 7.2rem minmax(0, 1fr); align-items: baseline; gap: 12px; padding-top: 10px; }
+  .fact b { font-size: 1.35rem; }
+}
+@media (prefers-reduced-motion: reduce) { .hero-art .shot, .hero-art .shot.b { animation: none; } .hero-art .shot.b { opacity: 0; } }
+
+.site { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 40px; }
+
+/* reading pages */
+.doc { max-width: 760px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 64px; font-size: 1rem; line-height: 1.68; }
+.doc.wide { max-width: 980px; }
+.doc-head { display: grid; gap: 10px; padding-bottom: 22px; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
+.doc h1 { font-size: clamp(1.9rem, 4.4vw, 2.6rem); line-height: 1.1; }
+.doc .lede { font-size: 1.12rem; color: var(--muted); margin: 0; max-width: 62ch; }
+.doc h2 { font-family: var(--font-display); font-size: 1.32rem; margin: 34px 0 8px; text-wrap: balance; }
+.doc h3 { font-family: var(--font-display); font-size: 1.05rem; margin: 0 0 4px; }
+.doc p, .doc ul, .doc ol { margin: 0 0 12px; max-width: 66ch; }
+.doc ul, .doc ol { padding-left: 1.3em; }
+.doc li + li { margin-top: 6px; }
+.doc a { color: var(--you); }
+.doc .note { font-size: .88rem; }
+.more a { font-weight: 600; }
+.pipeline { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; margin: 26px 0 6px; }
+.stage { position: relative; display: grid; gap: 4px; align-content: start; padding: 12px 18px 12px 12px; background: var(--panel); border: 1px solid var(--line); }
+.stage:first-child { border-radius: 10px 0 0 10px; } .stage:last-child { border-radius: 0 10px 10px 0; }
+.stage + .stage { border-left: 0; }
+.stage:not(:last-child)::after { content: ""; position: absolute; right: -7px; top: 50%; width: 12px; height: 12px; background: var(--panel); border: solid var(--line); border-width: 1px 1px 0 0; transform: translateY(-50%) rotate(45deg); z-index: 1; }
+.stage b { font-family: var(--font-display); font-size: .92rem; color: var(--you); }
+.stage span { font-size: .8rem; line-height: 1.4; color: var(--muted); }
+@media (max-width: 700px) {
+  .pipeline { grid-template-columns: minmax(0, 1fr); }
+  .stage { border-radius: 0 !important; border-left: 1px solid var(--line) !important; border-top: 0; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 10px; align-items: baseline; }
+  .stage:first-child { border-top: 1px solid var(--line); border-radius: 10px 10px 0 0 !important; } .stage:last-child { border-radius: 0 0 10px 10px !important; }
+  .stage:not(:last-child)::after { right: auto; left: 22px; top: auto; bottom: -7px; transform: rotate(135deg); }
+}
+.spec, .kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 18px; margin: 10px 0 14px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; max-width: 66ch; }
+.spec dt, .kv dt { font-weight: 600; } .spec dd, .kv dd { margin: 0; color: var(--muted); }
+.kv dd { font-family: var(--font-mono); font-size: .9rem; color: var(--ink); }
+.kv dd:last-child, .kv dd:nth-last-child(3) { font-family: var(--font-body); font-size: 1rem; color: var(--muted); }
+@media (max-width: 520px) { .spec, .kv { grid-template-columns: minmax(0, 1fr); gap: 2px; } .spec dd, .kv dd { margin-bottom: 8px; } }
+.steps { counter-reset: s; list-style: none; padding: 0 !important; display: grid; gap: 8px; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; margin: 0 !important; }
+.steps li::before { content: counter(s); font: 600 .8rem var(--font-mono); width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--btn); color: var(--ink); margin-top: 2px; }
+.checks { list-style: none; padding: 0 !important; display: grid; gap: 10px; }
+.checks li { padding-left: 26px; position: relative; margin: 0 !important; }
+.checks li::before { content: ""; position: absolute; left: 4px; top: .55em; width: 9px; height: 5px; border: solid var(--you); border-width: 0 0 2.5px 2.5px; transform: rotate(-45deg); }
+.timeline { counter-reset: t; list-style: none; padding: 0 !important; margin: 28px 0 10px; display: grid; gap: 0; max-width: 66ch; }
+.timeline li { counter-increment: t; position: relative; display: grid; gap: 2px; padding: 0 0 22px 46px; margin: 0 !important; }
+.timeline li::before { content: counter(t); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--cta); color: #fff;
+  font: 600 .85rem var(--font-mono); display: grid; place-items: center; }
+.timeline li::after { content: ""; position: absolute; left: 14px; top: 34px; bottom: 4px; width: 2px; background: var(--line); }
+.timeline li:last-child::after { display: none; }
+.timeline h3 { margin-top: 4px; } .timeline p { margin: 0; color: var(--muted); }
+.timeline b { color: var(--ink); }
+.reasons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 26px 0 10px; }
+.reasons section { padding: 16px 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.reasons h2 { margin: 0 0 6px; font-size: 1.08rem; }
+.reasons p { margin: 0; color: var(--muted); font-size: .95rem; line-height: 1.6; }
+@media (max-width: 640px) { .reasons { grid-template-columns: minmax(0, 1fr); } }
+
+/* tables and charts */
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); margin: 10px 0; }
+table.data { border-collapse: collapse; width: 100%; font-size: .9rem; line-height: 1.4; }
+table.data th, table.data td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.data th { font-family: var(--font-display); font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+table.data tr:last-child td { border-bottom: 0; }
+table.data .r { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--font-mono); font-size: .85rem; }
+table.data td:first-child { white-space: normal; min-width: 12rem; }
+table.data tr.hl td { font-weight: 600; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 24px 0 8px; }
+.kpi { display: grid; gap: 2px; align-content: start; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.kpi .k { font-size: .8rem; color: var(--muted); }
+.kpi b { font-family: var(--font-mono); font-weight: 500; font-size: 1.75rem; line-height: 1.2; }
+.kpi .s { font-size: .8rem; color: var(--muted); line-height: 1.4; }
+@media (max-width: 820px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.chart { margin: 18px 0; padding: 16px 16px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: grid; gap: 8px; min-width: 0; }
+.chart figcaption { display: grid; gap: 2px; } .chart figcaption b { font-family: var(--font-display); font-size: 1.05rem; } .chart figcaption span { font-size: .86rem; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: .82rem; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.plot { position: relative; min-width: 0; }
+.plot svg { display: block; width: 100%; overflow: visible; }
+.plot text { fill: var(--muted); font: 12px var(--font-body); }
+.plot .lab { fill: var(--ink); font-size: 12.5px; } .plot .lab.hl { font-weight: 600; }
+.plot .val { fill: var(--ink); font: 500 12px var(--font-mono); }
+.plot .grid { stroke: var(--c-grid); stroke-width: 1; }
+.plot .hit { fill: transparent; } .plot .row:hover .hit { fill: var(--btn); }
+.tip { position: absolute; pointer-events: none; z-index: 2; background: var(--ink); color: var(--panel); padding: 7px 10px; border-radius: 7px; font-size: .8rem; line-height: 1.4; max-width: 240px; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
+.tip b { font-weight: 600; } .tip .m { font-family: var(--font-mono); }
+.fulltable summary { cursor: pointer; font-weight: 600; color: var(--you); margin-top: 18px; }
+
+/* home: long scroll, one band per section */
+.band { border-top: 1px solid var(--line); }
+.band.alt { background: var(--panel); }
+@media (max-width: 560px) { .band-in { padding-block: 48px; gap: 20px; } }
+.band-in { max-width: 1240px; margin: 0 auto; display: grid; gap: 26px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 72px; }
+.band-head { display: grid; gap: 10px; align-content: start; max-width: 62ch; min-width: 0; }
+.band-head h2 { font-family: var(--font-display); font-size: clamp(1.7rem, 3.6vw, 2.5rem); line-height: 1.12; margin: 0; text-wrap: balance; }
+.band-head p { margin: 0; font-size: 1.05rem; line-height: 1.6; color: var(--muted); }
+.arrowlink { justify-self: start; color: var(--you); font-weight: 600; text-decoration: none; font-size: .98rem; }
+.arrowlink::after { content: " →"; } .arrowlink:hover { text-decoration: underline; }
+.flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.flow li { position: relative; display: grid; align-content: start; gap: 8px; padding: 18px 16px 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+.flow-n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 600 .85rem var(--font-mono); background: var(--cta); color: #fff; }
+.flow b { font-family: var(--font-display); font-size: 1.05rem; } .flow p { margin: 0; font-size: .9rem; line-height: 1.55; color: var(--muted); }
+.flow li:not(:last-child)::after { content: ""; position: absolute; right: -9px; top: 32px; width: 6px; height: 6px; border: solid var(--muted); border-width: 2px 2px 0 0; transform: rotate(45deg); }
+@media (max-width: 900px) { .flow { grid-template-columns: minmax(0, 1fr); } .flow li { grid-template-columns: 30px minmax(0, 1fr); column-gap: 14px; } .flow li p { grid-column: 2; } .flow li:not(:last-child)::after { display: none; } }
+.split { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: center; gap: 40px; }
+@media (max-width: 900px) { .split { grid-template-columns: minmax(0, 1fr); } }
+.minikpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin: 10px 0 6px; }
+.minikpis div { display: grid; gap: 2px; border-top: 2px solid var(--cta); padding-top: 10px; }
+.minikpis b { font-family: var(--font-mono); font-weight: 500; font-size: 1.6rem; } .minikpis span { font-size: .86rem; color: var(--muted); line-height: 1.45; }
+.chart.flat { margin: 0; background: var(--bg); }
+.journey { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.journey li { display: grid; gap: 4px; align-content: start; padding: 14px 14px 16px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); position: relative; overflow: hidden; }
+.journey li { padding-bottom: 26px !important; }
+.journey li::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 12px; height: 6px; border-radius: 3px; background: var(--btn); }
+.journey li::before { content: ""; position: absolute; left: 14px; bottom: 12px; height: 6px; border-radius: 3px; width: calc((100% - 28px) * var(--e, 1)); background: var(--c-net); z-index: 1; }
+.journey li:nth-child(n+4)::before { background: var(--c-search); }
+.journey li.top { border-color: var(--c-search); }
+.j-elo { font-family: var(--font-mono); font-size: 1.45rem; font-weight: 500; }
+.journey b { font-family: var(--font-display); font-size: 1rem; } .journey span:last-child { font-size: .82rem; color: var(--muted); line-height: 1.45; }
+@media (max-width: 980px) { .journey { grid-template-columns: repeat(3, minmax(0, 1fr)); } .journey li { margin-top: 0 !important; } }
+@media (max-width: 560px) { .journey { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.whygrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 32px; }
+.whygrid div { display: grid; gap: 6px; padding-top: 14px; border-top: 1px solid var(--line); }
+.whygrid b { font-family: var(--font-display); font-size: 1.08rem; } .whygrid p { margin: 0; color: var(--muted); line-height: 1.55; }
+@media (max-width: 820px) { .whygrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .whygrid { grid-template-columns: minmax(0, 1fr); } }
+.ctaband { background: radial-gradient(110% 140% at 80% 50%, var(--sea-top), var(--sea-bottom) 70%, #0c2a3d); color: #fff; }
+.ctasplit { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: center; gap: 32px; padding-block: 64px; }
+.ctasplit h2 { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.1; margin: 0 0 12px; }
+.ctasplit p { margin: 0; font-size: 1.05rem; line-height: 1.6; color: #dceaef; max-width: 46ch; }
+.ctasplit img { width: 100%; height: auto; filter: drop-shadow(0 18px 24px rgba(0,0,0,.35)); }
+@media (max-width: 820px) { .ctasplit { grid-template-columns: minmax(0, 1fr); } }
+
+/* page headers: a sea band with the page's headline figure */
+.pagehero { background: radial-gradient(110% 140% at 85% 20%, var(--sea-top), var(--sea-bottom) 70%, #0c2a3d); color: #fff; }
+.pagehero-in { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 56px 44px; }
+.pagehero-copy { display: grid; gap: 12px; min-width: 0; }
+.pagehero .eyebrow { color: #8fe3d4; }
+.pagehero h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.05; letter-spacing: -.015em; margin: 0; text-wrap: balance; }
+.pagehero .lede { margin: 0; font-size: 1.1rem; line-height: 1.6; color: #dceaef; max-width: 60ch; }
+.pagehero-fig { display: grid; gap: 4px; justify-items: end; text-align: right; padding-left: 24px; border-left: 1px solid rgba(255,255,255,.25); max-width: 16rem; }
+.pagehero-fig b { font-family: var(--font-mono); font-weight: 500; font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1; }
+.pagehero-fig span { font-size: .86rem; color: #cfe0e6; line-height: 1.4; }
+@media (max-width: 720px) { .pagehero-in { grid-template-columns: minmax(0, 1fr); padding-block: 40px 32px; }
+  .pagehero-fig { justify-items: start; text-align: left; border-left: 0; border-top: 1px solid rgba(255,255,255,.25); padding: 14px 0 0; max-width: none; } }
+.pagehero + .doc { padding-top: 36px; }
+.doc .flow, .doc .journey { margin: 18px 0 8px; padding: 0; max-width: none; }
+.doc .flow li, .doc .journey li { margin-top: 0; }
+.boardfig { margin: 28px 0; display: grid; gap: 8px; } .boardfig img { width: 100%; height: auto; border-radius: 14px; background: radial-gradient(110% 120% at 70% 30%, var(--sea-top), var(--sea-bottom)); padding: 12px; }
+.boardfig figcaption { font-size: .86rem; color: var(--muted); }
+.nextpage { display: grid; gap: 2px; margin-top: 48px; padding: 20px 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ink); text-decoration: none; position: relative; max-width: 66ch; }
+.nextpage span { font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.nextpage b { font-family: var(--font-display); font-size: 1.35rem; } .nextpage em { font-style: normal; color: var(--muted); }
+.nextpage::after { content: "→"; position: absolute; right: 22px; top: 50%; transform: translateY(-50%); font-size: 1.6rem; color: var(--you); transition: transform .15s; }
+.nextpage:hover { border-color: var(--you); } .nextpage:hover::after { transform: translate(4px, -50%); }
+.nextpage:focus-visible { outline: 2px solid var(--you); outline-offset: 2px; }
+
+/* home: explore cards, each with a small picture of its page */
+.explore { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 720px) { .explore { grid-template-columns: minmax(0, 1fr); } }
+.xcard { display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--panel); color: var(--ink); text-decoration: none; transition: transform .18s, box-shadow .18s, border-color .18s; }
+.xcard:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(10, 40, 60, .14); border-color: var(--you); }
+.xcard:focus-visible { outline: 2px solid var(--you); outline-offset: 3px; }
+.xvis { height: 150px; background: radial-gradient(120% 130% at 80% 20%, var(--sea-top), var(--sea-bottom)); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 18px; overflow: hidden; }
+.xtext { display: grid; gap: 6px; align-content: start; padding: 18px 20px 22px; }
+.xtext b { font-family: var(--font-display); font-size: 1.25rem; letter-spacing: -.01em; } .xtext p { margin: 0; color: var(--muted); line-height: 1.55; }
+.tile-k { font-family: var(--font-display); font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--you); font-weight: 700; }
+.xflow { flex-wrap: wrap; }
+@media (max-width: 480px) { .xflow { gap: 6px; padding-inline: 10px; } .xflow span { padding: 6px 8px; font-size: .74rem; } } .xflow span { padding: 7px 11px; border-radius: 99px; background: rgba(255,255,255,.14); font-size: .82rem; font-weight: 600; position: relative; }
+.xflow span:not(:last-child)::after { content: "›"; position: absolute; right: -8px; top: 50%; transform: translateY(-52%); opacity: .7; }
+.xbars { align-items: end; gap: 10px; } .xbars i { width: 26px; height: calc(var(--h) * 110px); border-radius: 5px 5px 0 0; background: #6fa8e8; }
+.xbars i.s { background: #f08a5d; }
+.ximg { padding: 6px; } .ximg img { height: 140%; width: auto; max-width: none; transform: translateY(6%); filter: drop-shadow(0 10px 14px rgba(0,0,0,.3)); }
+.xnum { flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; padding-inline: 28px; }
+.xnum b { font-family: var(--font-mono); font-weight: 500; font-size: 2.6rem; line-height: 1; } .xnum span { font-size: .8rem; color: #cfe0e6; }
+.xnum em { display: block; width: 100%; height: 6px; border-radius: 3px; background: rgba(255,255,255,.18); margin-top: 8px; } .xnum em i { display: block; height: 100%; border-radius: 3px; background: #f08a5d; }
+@media (prefers-reduced-motion: reduce) { .xcard, .nextpage::after { transition: none; } .xcard:hover { transform: none; } }
+
+/* the game page header and footer */
+.playhead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; }
+.playhead h1 { font-size: 1.35rem; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.playhead h1 .eyebrow { font-size: .74rem; }
+.sitefoot { border-top: 1px solid var(--line); color: var(--muted); font-size: .82rem; }
+.sitefoot { background: var(--nav); color: var(--nav-muted); border-top: 0; }
+.sitefoot-in { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 36px 32px; }
+.foot-brand b { font-family: var(--font-display); font-size: 1.15rem; color: var(--nav-ink); } .foot-brand p { margin: 6px 0 0; max-width: 40ch; line-height: 1.5; }
+.foot-links { display: grid; gap: 6px; } .foot-links span { font-family: var(--font-display); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--nav-ink); }
+.foot-links a { color: var(--nav-muted); text-decoration: none; } .foot-links a:hover { color: var(--nav-ink); }
+.foot-legal { grid-column: 1 / -1; margin: 0; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.1); font-size: .78rem; }
+@media (max-width: 560px) { .sitefoot-in { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+
+<style>
+/* Palette: ink and stone with one muted pine accent. The game board keeps its
+   own colours; everything around it stays quiet and flat. */
+:root {
+  --bg: #f5f5f2; --panel: #ffffff; --ink: #15191b; --muted: #61676a; --line: #e2e3df; --btn: #ededea;
+  --nav: #111619; --nav-ink: #eef0ee; --nav-muted: #9aa3a3; --hero: #111619; --hero-ink: #eef0ee; --hero-muted: #a4adab;
+  --accent: #2f6b5c; --accent-soft: #9cc3b6; --cta: #15191b; --cta-ink: #ffffff;
+  --c-net: #3f6dab; --c-search: #b8673f; --c-oumaji: #6d5fb0; --c-scripted: #8b8f8c; --c-grid: #ecece8;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1214; --panel: #171b1d; --ink: #e7e9e6; --muted: #9aa19d; --line: #262c2e; --btn: #22282a;
+  --nav: #0a0d0f; --hero: #0a0d0f; --accent: #7fb5a5; --cta: #e7e9e6; --cta-ink: #111619;
+  --c-net: #5f8fd0; --c-search: #c97a52; --c-oumaji: #9286cf; --c-scripted: #8a918e; --c-grid: #22282a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1214; --panel: #171b1d; --ink: #e7e9e6; --muted: #9aa19d; --line: #262c2e; --btn: #22282a;
+  --nav: #0a0d0f; --hero: #0a0d0f; --accent: #7fb5a5; --cta: #e7e9e6; --cta-ink: #111619;
+  --c-net: #5f8fd0; --c-search: #c97a52; --c-oumaji: #9286cf; --c-scripted: #8a918e; --c-grid: #22282a; color-scheme: dark }
+
+.hero, .pagehero, .ctaband { background: var(--hero); color: var(--hero-ink); }
+.hero .eyebrow, .pagehero .eyebrow { color: var(--accent-soft); }
+.hero-lede, .pagehero .lede, .ctasplit p { color: var(--hero-muted); }
+.hero-title { text-shadow: none; }
+.fact, .pagehero-fig { border-color: rgba(255,255,255,.14); } .fact span, .pagehero-fig span { color: var(--hero-muted); }
+.hero-art .shot { animation: none; filter: drop-shadow(0 24px 30px rgba(0,0,0,.45)); }
+.hero .btn.primary, .pagehero .btn.primary, .ctaband .btn.primary { background: #eef0ee; color: #111619; box-shadow: none; }
+.btn.primary { background: var(--cta); color: var(--cta-ink); box-shadow: none; }
+.btn.ghost { box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
+.navlinks a[data-nav="play"] { background: #2f6b5c; color: #fff; }
+.navlinks a[aria-current="page"] { box-shadow: inset 0 -2px 0 var(--accent-soft); }
+.eyebrow, .tile-k { color: var(--accent); letter-spacing: .12em; }
+.doc a, .arrowlink, .benchlink, .fulltable summary, .foot-links a:hover { color: var(--accent); }
+.band { border-top: 0; } .band.alt { background: var(--bg); }
+.xcard { border-radius: 12px; } .xcard:hover { transform: none; box-shadow: none; border-color: var(--ink); }
+.xvis { background: var(--btn); color: var(--ink); height: 140px; }
+.xflow span { background: var(--panel); border: 1px solid var(--line); font-weight: 500; }
+.xbars i { background: var(--c-net); width: 22px; } .xbars i.s { background: var(--c-search); }
+.xnum span { color: var(--muted); } .xnum em { background: var(--line); } .xnum em i { background: var(--ink); }
+.ximg { background: var(--hero); }
+.flow-n, .timeline li::before { background: var(--ink); color: var(--panel); }
+.flow li, .journey li, .reasons section, .kpi, .chart, .spec, .kv, .tablewrap, .nextpage, .card { box-shadow: none; }
+.journey li.top { border-color: var(--ink); }
+.checks li::before { border-color: var(--accent); }
+.nextpage::after { color: var(--ink); } .nextpage:hover { border-color: var(--ink); }
+.minikpis div { border-top-color: var(--ink); }
+.boardfig img { background: var(--hero); }
+.sitefoot { background: var(--hero); }
+.rail button.primary { background: var(--cta); border-color: var(--cta); color: var(--cta-ink); }
+.rail button.primary:hover:not(:disabled) { border-color: var(--cta); }
+
+/* Full-width pages: content spans the site width; on wide screens each section is heading left, text right */
+.doc, .doc.wide, .pagehero-in { max-width: 1240px; }
+.reasons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .reasons { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .reasons { grid-template-columns: minmax(0, 1fr); } }
+@media (min-width: 960px) {
+  .doc { display: grid; grid-template-columns: 260px minmax(0, 1fr); column-gap: 56px; align-content: start; }
+  .doc > * { grid-column: 2; }
+  .doc > h2 { grid-column: 1; margin-top: 0; padding-top: 30px; font-size: 1.4rem; line-height: 1.25; }
+  .doc > h2 + * { padding-top: 0; margin-top: 34px; }
+  .doc > h2 { border-top: 1px solid var(--line); }
+  .doc > .flow, .doc > .journey, .doc > .reasons, .doc > .boardfig, .doc > .kpis, .doc > .chart, .doc > .nextpage { grid-column: 1 / -1; }
+  .doc > p, .doc > ul, .doc > ol { max-width: 76ch; }
+  .doc > .spec, .doc > .kv, .doc > .tablewrap, .doc > .timeline { max-width: none; }
+  .doc > .checks { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 32px; max-width: none; }
+  .doc > .nextpage { max-width: none; grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+<nav class="topnav" aria-label="PolyMind">
+  <div class="topnav-in">
+    <a class="brand" href="#" data-nav="home"><svg viewBox="0 0 32 22" aria-hidden="true"><path d="M16 1 31 9 16 17 1 9z" fill="var(--you)"/><path d="M1 9v4l15 8v-4zM31 9v4l-15 8v-4z" fill="var(--nav-edge)"/><path d="M16 5l7 4-7 4-7-4z" fill="#fff" opacity=".85"/></svg><span>PolyMind</span></a>
+    <div class="navlinks">
+      <a href="#play" data-nav="play">Play</a>
+      <a href="#methodology" data-nav="methodology">Methodology</a>
+      <a href="#training-process" data-nav="training-process">Training</a>
+      <a href="#why-polytopia" data-nav="why-polytopia">Why Polytopia</a>
+      <a href="#benchmarks" data-nav="benchmarks">Benchmarks</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============================================================ home -->
+<section class="page" id="page-home" data-page="home">
+  <div class="hero">
+    <div class="hero-in">
+      <div class="hero-copy">
+        <div class="eyebrow">Reinforcement learning · The Battle of Polytopia</div>
+        <h1 class="hero-title">PolyMind</h1>
+        <p class="hero-lede">An AI that learns to win one-on-one Polytopia. It plays on a rules engine rebuilt from public evidence, trains by self-play on ordinary CPUs, and checks its critical moves with a short lookahead search. You can play it right here.</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#play">Play against the AI</a>
+          <a class="btn ghost" href="#methodology">How it works</a>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <img class="shot a" src="assets/board-endgame.webp" alt="" width="1100" height="600">
+      </div>
+    </div>
+    <div class="hero-facts">
+      <div class="fact"><b class="num">1,498</b><span>Elo of Legion2, the strongest model</span></div>
+      <div class="fact"><b class="num">17,500</b><span>rated games on held-out maps</span></div>
+      <div class="fact"><b class="num">30,641</b><span>possible actions every step</span></div>
+    </div>
+  </div>
+
+
+
+
+
+  <section class="band" aria-labelledby="h-explore">
+    <div class="band-in">
+      <div class="band-head">
+        <h2 id="h-explore">Inside PolyMind</h2>
+        <p>How the AI is built, how it was trained, why this game, and how strong it is.</p>
+      </div>
+      <div class="explore">
+        <a class="xcard" href="#methodology">
+          <div class="xvis xflow" aria-hidden="true"><span>Rules</span><span>Board</span><span>Network</span><span>Search</span><span>Elo</span></div>
+          <div class="xtext"><span class="tile-k">Methodology</span><b>How the AI is built</b><p>A rules engine, a network that reads the board, and a lookahead for the moves that matter.</p></div>
+        </a>
+        <a class="xcard" href="#training-process">
+          <div class="xvis xbars" aria-hidden="true"><i style="--h:.38"></i><i style="--h:.45"></i><i style="--h:.6"></i><i style="--h:.72" class="s"></i><i style="--h:.92" class="s"></i><i style="--h:1" class="s"></i></div>
+          <div class="xtext"><span class="tile-k">Training process</span><b>From Champion to Legion2</b><p>Self-play, population training, exploiters and search, each model built on the last.</p></div>
+        </a>
+        <a class="xcard" href="#why-polytopia">
+          <div class="xvis ximg" aria-hidden="true"><img src="assets/board-midgame.webp" alt="" width="1100" height="600" loading="lazy"></div>
+          <div class="xtext"><span class="tile-k">Why Polytopia</span><b>A whole strategy game in one match</b><p>Economy, tech and war under fog of war, small enough to train on a laptop.</p></div>
+        </a>
+        <a class="xcard" href="#benchmarks">
+          <div class="xvis xnum" aria-hidden="true"><b>1,498</b><span>Legion2 Elo</span><em><i style="width:71%"></i></em><span>Scripted expert 1,000</span></div>
+          <div class="xtext"><span class="tile-k">Benchmarks</span><b>An Elo ladder with error bars</b><p>17,500 rated games on held-out maps, every model on one scale.</p></div>
+        </a>
+      </div>
+    </div>
+  </section>
+  <section class="ctaband" aria-labelledby="h-cta">
+    <div class="band-in ctasplit">
+      <div>
+        <h2 id="h-cta">Think you can beat Legion2?</h2>
+        <p>Play a full game in your browser against the strongest PolyMind model, or start with an easier opponent. Every game you finish can help the AI learn.</p>
+        <div class="hero-cta"><a class="btn primary" href="#play">Play now</a><a class="btn ghost" href="#benchmarks">Compare opponents</a></div>
+      </div>
+      <img src="assets/board-midgame.webp" alt="A game in progress on the Training Ground board" width="1100" height="600" loading="lazy">
+    </div>
+  </section>
+</section>
+
+
+<!-- ============================================================ play -->
+<section class="page" id="page-play" data-page="play" hidden>
 <div class="wrap">
-  <header>
-    <h1>PolyMind</h1>
-    <div class="sub">One on one against the Bardur AI on a land-only 11×11 Drylands map, under the official 1v1 Might rules. Take Bardur's capital to win. Every game you play helps the AI learn.</div>
+  <header class="playhead">
+    <h1><span class="eyebrow">Training Ground</span>Play Bardur</h1>
     <div class="keys" aria-label="Keyboard shortcuts"><span><kbd>N</kbd> next unit</span><span><kbd>E</kbd> end turn</span><span><kbd>T</kbd> tech tree</span><span><kbd>+</kbd><kbd>−</kbd> zoom</span><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> + <kbd>Enter</kbd> play from the board</span><span><kbd>Esc</kbd> deselect</span></div>
   </header>
 
@@ -296,6 +711,7 @@ canvas:focus-visible { outline: 2px solid rgba(255,255,255,.45); outline-offset:
       <details class="card help" id="help">
         <summary class="label">How to play</summary>
         <ul>
+          <li><b>The match</b>: one on one on a land-only 11×11 Drylands map, under the official 1v1 Might rules. Every game you finish can help the AI learn.</li>
           <li><b>Win</b> by taking Bardur's capital: move a unit onto it, then use Capture.</li>
           <li><b>Stars</b> arrive every turn (the +number). Spend them on techs, units and tile improvements.</li>
           <li><b>Grow</b>: move a unit onto a village and Capture it on your next turn. Fruit, hunting and farms add population; a full city levels up and gives you a reward.</li>
@@ -303,6 +719,11 @@ canvas:focus-visible { outline: 2px solid rgba(255,255,255,.45); outline-offset:
           <li><b>Ruins</b> (?) hold a random reward: a unit that starts its turn there can Explore.</li>
         </ul>
       </details>
+      <div class="card">
+        <div class="label">Opponent strength</div>
+        <div class="oppbench" id="oppbench"></div>
+        <a class="note benchlink" href="#benchmarks">Elo from 13,460 rated games · full benchmarks</a>
+      </div>
       <div class="card">
         <div class="label">You vs Bardur</div>
         <div class="cmp" id="stats"></div>
@@ -348,6 +769,278 @@ canvas:focus-visible { outline: 2px solid rgba(255,255,255,.45); outline-offset:
     </div>
   </div>
 </div>
+
+</section>
+
+<!-- ============================================================ methodology -->
+<section class="page" id="page-methodology" data-page="methodology" hidden>
+  <div class="pagehero">
+    <div class="pagehero-in">
+      <div class="pagehero-copy">
+      <div class="eyebrow">Methodology</div>
+      <h1>How PolyMind plays</h1>
+      <p class="lede">PolyMind is a rules engine, a neural network that reads the board and proposes moves, and a short search that double-checks the moves that matter. Strength is measured by Elo on games the AI never trained on.</p>
+      </div>
+      <div class="pagehero-fig"><b class="num">30,641</b><span>possible actions per step on the 11×11 map</span></div>
+    </div>
+  </div>
+  <article class="doc wide">
+
+    <ol class="flow">
+        <li><span class="flow-n">1</span><b>Rules engine</b><p>Polytopia rebuilt from public evidence, every rule logged with its source.</p></li>
+        <li><span class="flow-n">2</span><b>Environment</b><p>The board as 67 feature planes, seen through the fog, with 30,641 possible actions.</p></li>
+        <li><span class="flow-n">3</span><b>Network</b><p>A residual CNN that scores every action and estimates who is winning.</p></li>
+        <li><span class="flow-n">4</span><b>Search</b><p>At critical moves, a short lookahead checks the network's best ideas.</p></li>
+        <li><span class="flow-n">5</span><b>Evaluation</b><p>Elo on held-out maps, each played from both seats, with error bars.</p></li>
+      </ol>
+
+    <h2>The target setting</h2>
+    <p>PolyMind aims at one competitive format and tries to play it faithfully:</p>
+    <dl class="spec">
+      <dt>Mode</dt><dd>Might, one against one. You win by capturing the enemy capital.</dd>
+      <dt>Map</dt><dd>Tiny Drylands, 11×11 = 121 tiles, with no water.</dd>
+      <dt>Tribes</dt><dd>The AI plays Bardur, against any standard tribe. Legion+ is a separate model trained to play Oumaji.</dd>
+      <dt>Ruleset</dt><dd>Official_Rules_2: the official rules, minus Windmill, Sawmill, Forge or Market in places where they would do nothing. The current Elo ladder was played under Official_Rules_1.</dd>
+    </dl>
+
+    <h2>A rules engine built from evidence</h2>
+    <p>Polytopia has no public simulator, so the project wrote its own. It covers map generation, tribes, cities, economy, technology, units, combat, fog of war and victory. Every rule is recorded with its source and an evidence level, and a rule changes only when new evidence or an in-game check supports the change.</p>
+    <p>The game you play here runs on a JavaScript port of the same engine. A test plays the Python and browser versions side by side and checks that they agree move for move.</p>
+
+    <h2>What the AI sees and does</h2>
+    <p>The network reads the board from one player's point of view, through the fog. Its input is 67 feature planes, one value per tile for things like terrain, units, cities and borders, plus a vector of global numbers such as stars and turn. The output is a score for every possible action. On the 11×11 map that is 30,641 actions. Illegal actions are masked out before a move is chosen, so the AI only ever picks legal moves.</p>
+
+    <h2>The network</h2>
+    <p>A residual convolutional network with 4 blocks of 64 channels. It has two outputs: a policy head that scores every action on every tile, and a value head that estimates how the game is going. The Legion models add a small head that estimates the probability of winning. Because the network is convolutional, it works on any map size.</p>
+
+    <h2>Search on critical moves</h2>
+    <p>Most moves come straight from the network. At critical decisions, such as several possible attacks, a Knight attack, or a capture with enemies nearby, the AI searches before it moves:</p>
+    <ol class="steps">
+      <li>Take the network's top candidate moves.</li>
+      <li>Play out several continuations of the rest of its own turn after each one.</li>
+      <li>Score each resulting position with the value head.</li>
+      <li>Keep the network's own move unless another candidate scores clearly better.</li>
+    </ol>
+    <p>Lookahead copies of the game cannot see through the fog, so the search never uses hidden information. A gate decides which positions are critical enough to search. Legion2, the strongest model, is Legion0 with a looser gate that searches more positions; it has no new weights of its own.</p>
+
+    <h2>How strength is measured</h2>
+    <ul class="checks">
+      <li><b>Held-out maps.</b> Map seeds reserved for final tests are never used for training or for choosing models.</li>
+      <li><b>Both seats.</b> Each map is played twice, once from each side, so a lucky start cancels out.</li>
+      <li><b>Mirror tribes.</b> Main ratings are Bardur against Bardur, so tribe strength doesn't skew them.</li>
+      <li><b>Elo with error bars.</b> A Bradley–Terry fit over every game, with the scripted expert fixed at 1,000 and 95% ranges from bootstrap resampling.</li>
+    </ul>
+    <p class="more"><a href="#benchmarks">See the benchmarks</a></p>
+
+    <h2>Known limits</h2>
+    <ul>
+      <li>Training games stop at turn 60 as a draw. The real game has no turn limit.</li>
+      <li>Special tribes, water maps and peace treaties are not modelled.</li>
+      <li>Some mechanics rest on conflicting or unverified sources.</li>
+      <li>All training runs on CPU.</li>
+    </ul>
+    <a class="nextpage" href="#training-process"><span>Next</span><b>Training process</b><em>How each model was trained, from Champion to Legion2</em></a>
+  </article>
+</section>
+
+<!-- ============================================================ training -->
+<section class="page" id="page-training-process" data-page="training-process" hidden>
+  <div class="pagehero">
+    <div class="pagehero-in">
+      <div class="pagehero-copy">
+      <div class="eyebrow">Training process</div>
+      <h1>From a scripted bot to Legion2</h1>
+      <p class="lede">Each model starts from an earlier one. Training uses CPUs only, so the hours below are CPU hours, counted from the very first network.</p>
+      </div>
+      <div class="pagehero-fig"><b class="num">24h</b><span>of CPU training behind Legion+, the newest network</span></div>
+    </div>
+  </div>
+  <article class="doc wide">
+
+    <h2>Elo, model by model</h2>
+    <p class="note">Bars show each model's lead over the scripted expert (1,000), on a 500-point scale.</p>
+      <ol class="journey">
+        <li style="--e:0.378"><span class="j-elo num">1,189</span><b>Champion</b><span>Won population training · 9.7 h</span></li>
+        <li style="--e:0.426"><span class="j-elo num">1,213</span><b>Rushbreaker</b><span>Trained against rush exploiters · 10.2 h</span></li>
+        <li style="--e:0.642"><span class="j-elo num">1,321</span><b>Alpha1</b><span>Fine-tuned main line · 13.9 h</span></li>
+        <li style="--e:0.798"><span class="j-elo num">1,399</span><b>Alpha1+</b><span>Alpha1 plus lookahead search</span></li>
+        <li style="--e:0.944"><span class="j-elo num">1,472</span><b>Legion0</b><span>Wider search, win-probability head</span></li>
+        <li class="top" style="--e:0.996"><span class="j-elo num">1,498</span><b>Legion2</b><span>Searches more positions · strongest</span></li>
+      </ol>
+    <h2>The stages</h2>
+    <ol class="timeline">
+      <li>
+        <h3>Imitate a scripted expert</h3>
+        <p>A hand-written expert bot plays the game. The network first learns to copy its moves (behaviour cloning), then improves by playing itself with PPO, a standard reinforcement-learning method.</p>
+      </li>
+      <li>
+        <h3>Courses and drills</h3>
+        <p>Short lessons teach single skills: an economy and vision course, combat drills, and set scenarios.</p>
+      </li>
+      <li>
+        <h3>Population-based training</h3>
+        <p>Several networks train side by side with different reward styles. After each generation they play a tournament; the weakest are replaced by copies of the best. The winner became <b>Champion</b>, at 9.7 CPU hours.</p>
+      </li>
+      <li>
+        <h3>Exploiters and fine-tunes</h3>
+        <p>Specialist exploiters (a rush player and an economy player) are trained to find the main model's weak spots. The main line then trains against them: <b>Rushbreaker</b>, then <b>Alpha1</b> at 13.9 hours, then Alpha2 and Alpha3.</p>
+      </li>
+      <li>
+        <h3>Search on top</h3>
+        <p>Adding lookahead search to Alpha1 gave <b>Alpha1+</b>, which beat the scripted expert in 144 of 150 games. A wider search gate and a win-probability head gave <b>Legion0</b>, and searching more positions gave <b>Legion2</b>, the strongest model and the default opponent here.</p>
+      </li>
+      <li>
+        <h3>Distilling search (in progress)</h3>
+        <p>AlphaPro tries to teach the network to play like the search without having to search. The first attempt did not beat Alpha1, so this work continues.</p>
+      </li>
+      <li>
+        <h3>Legion+: a second tribe</h3>
+        <p>Legion+ starts from Legion2's network and keeps training with PPO while playing <b>Oumaji</b>. It meets a mix of fixed models, the scripted expert, a random player and its own past selves. It has gained about 160 Elo as Oumaji over its starting point.</p>
+      </li>
+    </ol>
+
+    <h2>Legion+ settings</h2>
+    <dl class="kv">
+      <dt>Games per update</dt><dd>8</dd>
+      <dt>Learning rate</dt><dd>2e-5</dd>
+      <dt>Entropy bonus</dt><dd>0.003</dd>
+      <dt>Epochs × minibatches</dt><dd>4 × 8</dd>
+      <dt>Discount γ / GAE λ</dt><dd>0.995 / 0.95</dd>
+      <dt>Clip</dt><dd>0.2</dd>
+      <dt>Reward</dt><dd>±1 for the result, plus a small bonus for the change in score margin</dd>
+      <dt>Opponents</dt><dd>70% fixed models, 5% scripted expert, 2% random, 23% its own snapshots</dd>
+    </dl>
+
+    <h2>Model lineage</h2>
+    <div class="tablewrap">
+      <table class="data">
+        <thead><tr><th>Model</th><th>Trained from</th><th class="r">Own hours</th><th class="r">Total hours</th></tr></thead>
+        <tbody id="lineage"></tbody>
+      </table>
+    </div>
+    <p class="note">Total hours count every network the model was built on. Search adds no training time: Legion0 and Legion2 use Alpha1's network.</p>
+
+    <h2>Games from people</h2>
+    <p>Games played in the Training Ground are saved so the AI can learn from human play. A pilot model trained partly on them reached 1,345 Elo. These games are kept private and are never published.</p>
+    <a class="nextpage" href="#why-polytopia"><span>Next</span><b>Why Polytopia</b><em>What makes this game a good test for AI</em></a>
+  </article>
+</section>
+
+<!-- ============================================================ why polytopia -->
+<section class="page" id="page-why-polytopia" data-page="why-polytopia" hidden>
+  <div class="pagehero">
+    <div class="pagehero-in">
+      <div class="pagehero-copy">
+      <div class="eyebrow">Why Polytopia</div>
+      <h1>A whole strategy game in a short match</h1>
+      <p class="lede">The Battle of Polytopia is a turn-based strategy game by Midjiwan. In one small match you grow an economy, research technology, expand and fight. That makes it a hard problem for AI that is still small enough to study without a data centre.</p>
+      </div>
+      <div class="pagehero-fig"><b class="num">121</b><span>tiles on the Tiny Drylands map PolyMind plays</span></div>
+    </div>
+  </div>
+  <article class="doc">
+
+    <div class="reasons">
+      <section>
+        <h2>Many decisions in one turn</h2>
+        <p>A turn is not one move. Every unit can move and attack, every city can train, and you can research and build in any order. On the 11×11 map the AI chooses among 30,641 possible actions at every step, and only a few are legal at any moment.</p>
+      </section>
+      <section>
+        <h2>You can't see the whole map</h2>
+        <p>Fog of war hides the enemy until you explore. The AI has to scout, guess and plan with partial information, as a person does.</p>
+      </section>
+      <section>
+        <h2>Economy, tech and war at once</h2>
+        <p>Stars pay for everything. Spending on cities makes you richer later, and spending on units keeps you alive now. Good play balances long-term growth against short-term danger.</p>
+      </section>
+      <section>
+        <h2>Exact combat, uncertain world</h2>
+        <p>Combat follows a fixed formula, so an attack's outcome can be worked out in advance. The uncertainty comes from the map, the fog and the opponent. That suits lookahead search on the moves that decide fights.</p>
+      </section>
+      <section>
+        <h2>A real competitive format</h2>
+        <p>One-on-one Might on a tiny map is played competitively by people. That gives a clear goal and a fair way to compare the AI with human players.</p>
+      </section>
+      <section>
+        <h2>Small enough for a laptop</h2>
+        <p>An 11×11 map with short games means every model here was trained on CPUs. Research ideas can be tested in hours, not weeks.</p>
+      </section>
+    </div>
+
+    <figure class="boardfig"><img src="assets/board-endgame.webp" alt="A finished Training Ground game: Imperius in teal has taken Bardur's red capital" width="1100" height="600" loading="lazy"><figcaption>A finished Training Ground game, whole map revealed. Every city, unit and border is a decision someone made.</figcaption></figure>
+
+    <h2>The research problem</h2>
+    <p>There is no official simulator or API. Before any learning, the rules had to be rebuilt and checked against the real game, so rules fidelity is part of the research. PolyMind measures its progress the same way throughout: Elo on held-out maps, from both seats.</p>
+    <p class="note">PolyMind is an independent project and is not affiliated with or endorsed by Midjiwan.</p>
+    <a class="nextpage" href="#benchmarks"><span>Next</span><b>Benchmarks</b><em>The Elo ladder, with error bars</em></a>
+  </article>
+</section>
+
+<!-- ============================================================ benchmarks -->
+<section class="page" id="page-benchmarks" data-page="benchmarks" hidden>
+  <div class="pagehero">
+    <div class="pagehero-in">
+      <div class="pagehero-copy">
+      <div class="eyebrow">Benchmarks</div>
+      <h1>Elo ladder</h1>
+      <p class="lede">Models play each other on held-out maps from both seats. Ratings come from one Bradley–Terry fit over all games, with the scripted expert fixed at 1,000. Bars show 95% ranges. Refit on 4 November 2026.</p>
+      </div>
+      <div class="pagehero-fig"><b class="num">1,498</b><span>Elo of Legion2, the strongest model</span></div>
+    </div>
+  </div>
+  <article class="doc wide">
+
+    <div class="kpis">
+      <div class="kpi"><span class="k">Strongest model</span><b class="num">1,498</b><span class="s">Legion2 · 95% range 1,437–1,569</span></div>
+      <div class="kpi"><span class="k">Over the scripted expert</span><b class="num">+498</b><span class="s">an expected score of about 95%</span></div>
+      <div class="kpi"><span class="k">Games in the fit</span><b class="num">17,500</b><span class="s">13,460 as Bardur · 4,040 as Oumaji</span></div>
+      <div class="kpi"><span class="k">Legion+ as Oumaji</span><b class="num">+161</b><span class="s">over its starting network, without search</span></div>
+    </div>
+
+    <figure class="chart">
+      <figcaption><b>Bardur mirror ladder</b><span>Main models, Bardur against Bardur</span></figcaption>
+      <div class="legend" id="lg-bardur"></div>
+      <div class="plot" id="ch-bardur"></div>
+    </figure>
+
+    <figure class="chart">
+      <figcaption><b>Playing Oumaji</b><span>Rated against the Bardur ladder. These include the tribe matchup, so compare them with each other.</span></figcaption>
+      <div class="legend" id="lg-oumaji"></div>
+      <div class="plot" id="ch-oumaji"></div>
+    </figure>
+
+    <figure class="chart">
+      <figcaption><b>Legion+ training progress</b><span>Elo as Oumaji, without search, against total CPU training hours</span></figcaption>
+      <div class="plot" id="ch-progress"></div>
+    </figure>
+
+    <h2>Reading the numbers</h2>
+    <ul>
+      <li>A 100-point gap means the stronger model is expected to score about 64%; 400 points is about 91%.</li>
+      <li>Where two ranges overlap, the order of those models is not settled. Legion2 leads Legion0 by 26 points on 400 head-to-head games, inside both ranges.</li>
+      <li>Search of every budget tested (8 to 64 continuations) beats plain Alpha1, scoring about 0.61–0.64 against it. Bigger budgets have not been shown to be stronger.</li>
+    </ul>
+
+    <details class="fulltable">
+      <summary>All ratings as a table</summary>
+      <div class="tablewrap">
+        <table class="data">
+          <thead><tr><th>Model</th><th>Type</th><th class="r">Elo</th><th class="r">95% range</th><th class="r">Games</th></tr></thead>
+          <tbody id="elotable"></tbody>
+        </table>
+      </div>
+    </details>
+    <a class="nextpage" href="#play"><span>Next</span><b>Play Bardur</b><em>Try your luck against Legion2</em></a>
+  </article>
+</section>
+
+<footer class="sitefoot">
+  <div class="sitefoot-in">
+    <div class="foot-brand"><b>PolyMind</b><p>A reinforcement-learning project for one-on-one The Battle of Polytopia.</p></div>
+    <nav class="foot-links" aria-label="Site"><span>Explore</span><a href="#play">Play</a><a href="#methodology">Methodology</a><a href="#training-process">Training process</a><a href="#why-polytopia">Why Polytopia</a><a href="#benchmarks">Benchmarks</a></nav>
+    <p class="foot-legal">The Battle of Polytopia is a game by Midjiwan. PolyMind is not affiliated with or endorsed by Midjiwan. Board art on this site is drawn by PolyMind's own renderer.</p>
+  </div>
+</footer>
 
 <script src="vendor/tf.min.js"></script>
 <script src="engine.js"></script>
@@ -1379,6 +2072,7 @@ canvas:focus-visible { outline: 2px solid rgba(255,255,255,.45); outline-offset:
     const me = S.human, b = S.botSeat;
     const sc = G.scores();
     $("turn").textContent = G.turn + 1;
+    renderOppBench();
     $("hscore").textContent = sc[me].toLocaleString();
     $("hstars").textContent = G.players[me].stars;
     $("hinc").textContent = `+${G.income(me)}`;
@@ -1432,6 +2126,7 @@ canvas:focus-visible { outline: 2px solid rgba(255,255,255,.45); outline-offset:
       const c = G.cities[pend[0]];
       $("seltitle").textContent = `City upgrade: level ${c.level}`;
       $("selinfo").textContent = "Choose a reward for your city.";
+      $("hint").textContent = "";
       pend[1].forEach((r, k) => box.appendChild(act(pretty(R.names.reward[r].replace("_", " ")), null, () => humanApply({ kind: AK.REWARD, x: 0, y: 0, tx: 0, ty: 0, arg: k }), false, "✦")));
     } else if (sel) {
       const t = G.tile(sel.x, sel.y), u = G.unitOn(sel.x, sel.y), c = G.cityOn(sel.x, sel.y), vis = viewExplored()[sel.y * G.width + sel.x];
@@ -1743,7 +2438,7 @@ canvas:focus-visible { outline: 2px solid rgba(255,255,255,.45); outline-offset:
   $("rpview").onchange = () => { RP.view = $("rpview").value; render(); };
   $("rpexit").onclick = () => exitReplay();
   document.addEventListener("keydown", (e) => {
-    if (!RP || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (!RP || $("page-play").hidden || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
     if (e.key === "ArrowLeft") { stopPlay(); goTo(e.shiftKey ? turnBack() : RP.k - 1); }
     else if (e.key === "ArrowRight") { stopPlay(); goTo(e.shiftKey ? turnFwd() : RP.k + 1); }
     else if (e.key === " " && e.target === document.body) togglePlay();
@@ -1947,7 +2642,7 @@ canvas:focus-visible { outline: 2px solid rgba(255,255,255,.45); outline-offset:
   }
   // keys: N next unit, E end turn, T tech tree, Esc closes or deselects
   document.addEventListener("keydown", (e) => {
-    if (RP || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (RP || $("page-play").hidden || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
     const k = e.key.toLowerCase();
     if (k === "n") nextUnit();
     else if (k === "e" && !$("endturn").disabled) $("endturn").click();
@@ -1985,6 +2680,20 @@ canvas:focus-visible { outline: 2px solid rgba(255,255,255,.45); outline-offset:
     network: "The Alpha1 network playing on instinct, without lookahead. Quick to move.",
     expert: "A hand-written rule-based bot. The easiest opponent, good for learning the rules.",
   };
+  // the opponents' Elo from the 4 Nov ladder, the current game's opponent marked
+  const OPP_ELO = [["legion2", "Legion2", 1498], ["legion0", "Legion0", 1472], ["search", "Alpha1+", 1399], ["network", "Alpha1, no lookahead", 1321], ["expert", "Scripted expert", 1000]];
+  let benchFor = null;
+  function renderOppBench() {
+    if (!S || benchFor === S.bot) return; benchFor = S.bot;
+    const box = $("oppbench"); box.innerHTML = "";
+    for (const [k, name, elo] of OPP_ELO) {
+      const row = document.createElement("div"); row.className = "ob" + (k === S.bot ? " cur" : "");
+      const n = document.createElement("span"); n.className = "n"; n.textContent = name + (k === S.bot ? " · playing now" : "");
+      const v = document.createElement("span"); v.className = "v"; v.textContent = elo.toLocaleString("en-US");
+      const bar = document.createElement("span"); bar.className = "b"; const i = document.createElement("i"); i.style.width = `${(elo - 900) / 700 * 100}%`; bar.appendChild(i);
+      row.append(n, v, bar); box.appendChild(row);
+    }
+  }
   const showOpp = () => { $("oppdesc").textContent = `${OPP_DESC[$("opp").value] || ""} Changes apply to the next game.`; };
   $("opp").addEventListener("change", showOpp);
 
@@ -1993,5 +2702,152 @@ canvas:focus-visible { outline: 2px solid rgba(255,255,255,.45); outline-offset:
   if (restored) { try { newGame(restored); log("Resumed your last game."); } catch (e) { newGame(); } }
   else newGame();
   showOpp();
+})();
+</script>
+<script>
+// Site pages: one view per hash (#play, #methodology, ...), the landing page when none.
+(() => {
+  const PAGES = ["home", "play", "methodology", "training-process", "why-polytopia", "benchmarks"];
+  const TITLES = { home: "PolyMind", play: "Training Ground · PolyMind", methodology: "Methodology · PolyMind", "training-process": "Training · PolyMind", "why-polytopia": "Why Polytopia · PolyMind", benchmarks: "Benchmarks · PolyMind" };
+  function show() {
+    const h = location.hash.slice(1), page = PAGES.includes(h) ? h : "home";
+    for (const p of PAGES) document.getElementById("page-" + p).hidden = p !== page;
+    for (const a of document.querySelectorAll("[data-nav]")) { if (a.dataset.nav === page) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); }
+    document.title = TITLES[page];
+    window.scrollTo(0, 0);
+    drawCharts();
+  }
+  window.addEventListener("hashchange", show);
+  document.querySelector(".brand").addEventListener("click", (e) => { e.preventDefault(); history.pushState(null, "", location.pathname + location.search); show(); });
+  window.addEventListener("popstate", show);
+
+  // ------------------------------------------------------------ data (4 Nov 2026 refit)
+  const BARDUR = [
+    ["Legion2", "search", 1498, 1437, 1569, 400, "Legion0 searching more positions. Default opponent in the Training Ground."],
+    ["Wide gate on Alpha1", "search", 1477, 1411, 1543, 584],
+    ["Legion1", "search", 1476, 1401, 1550, 200, "Legion1's network with Legion0's wide search"],
+    ["AlphaPro-RL 3,024 + wide gate", "search", 1473, 1389, 1556, 200],
+    ["Legion0", "search", 1472, 1419, 1528, 1834, "Alpha1 with the wide search gate and win head"],
+    ["Alpha1+ (Search-16)", "search", 1399, 1351, 1454, 3210],
+    ["Legion1's network", "net", 1346, 1276, 1408, 200, "Best network without search"],
+    ["AlphaPro-RL 2,016", "net", 1338, 1284, 1399, 1400],
+    ["Alpha2", "net", 1324, 1270, 1388, 400],
+    ["Alpha1", "net", 1321, 1271, 1376, 5850],
+    ["AlphaPro-RL 3,024", "net", 1313, 1259, 1380, 500],
+    ["Alpha3", "net", 1304, 1249, 1363, 1000],
+    ["Rush exploiter", "net", 1276, 1221, 1333, 1000],
+    ["Economy exploiter", "net", 1264, 1213, 1319, 1000],
+    ["Knight exploiter", "net", 1221, 1156, 1292, 200],
+    ["Rushbreaker", "net", 1213, 1149, 1273, 300],
+    ["Champion", "net", 1189, 1128, 1257, 300],
+    ["Scripted expert", "scripted", 1000, null, null, 450, "Fixed at 1,000; every other rating is relative to it"],
+  ];
+  const OUMAJI = [
+    ["Legion+ 98 + search (own value head)", "search", 1452, 1348, 1571, 60],
+    ["Legion2 with search", "search", 1381, 1276, 1474, 120],
+    ["Legion+ 98 + search (Legion2's win head)", "search", 1319, 1219, 1429, 120],
+    ["Legion+ update 338 (latest)", "net", 1313, 1252, 1374, 300],
+    ["Legion+ update 325", "net", 1262, 1210, 1317, 1000],
+    ["Legion+ update 98", "net", 1231, 1180, 1285, 1200],
+    ["Legion+ outcome-only reward", "net", 1156, 1108, 1213, 700],
+    ["Legion2's network (Legion+ start)", "net", 1152, 1108, 1204, 1400],
+  ];
+  // Legion+ without search, by total CPU hours
+  const PROGRESS = [["Start (Legion2's network)", 13.9, 1152, 1108, 1204], ["Update 98", 17.9, 1231, 1180, 1285], ["Update 325", 23.8, 1262, 1210, 1317], ["Update 338", 24.0, 1313, 1252, 1374]];
+  const LINEAGE = [
+    ["Champion", "Population-based training", 9.7, 9.7], ["Rushbreaker", "Champion", 0.5, 10.2], ["Economy exploiter", "Champion", 0.6, 10.3],
+    ["Rush exploiter", "Rushbreaker", 1.2, 11.4], ["Alpha1", "Rushbreaker", 3.7, 13.9], ["Alpha3", "Alpha1", 0.5, 14.4], ["Alpha1-RL", "Alpha1", 1.3, 15.2],
+    ["Human-games pilot", "Alpha1", 1.7, 15.6], ["AlphaPro-RL 1,008", "Alpha1", 2.2, 16.1], ["Alpha2", "Alpha1", 4.3, 18.2],
+    ["AlphaPro-RL 2,016", "AlphaPro-RL 1,008", 2.5, 18.6], ["AlphaPro-RL 3,024", "AlphaPro-RL 2,016", 1.7, 20.3], ["Legion1's network", "Alpha1", 8.0, 21.9],
+    ["Legion+ update 98", "Alpha1 (Legion2's network)", 4.0, 17.9], ["Legion+ update 325", "Legion+ update 98", 5.9, 23.8], ["Legion+ update 338", "Legion+ update 325", 0.2, 24.0],
+  ];
+  const KIND = { search: "Network + search", net: "Network only", scripted: "Scripted" };
+  const fmt = (n) => n.toLocaleString("en-US");
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const colorOf = (kind, oumaji) => oumaji ? (kind === "search" ? css("--c-search") : css("--c-oumaji")) : css({ search: "--c-search", net: "--c-net", scripted: "--c-scripted" }[kind]);
+
+  // tables
+  const tb = document.getElementById("lineage");
+  for (const [m, from, own, tot] of LINEAGE) { const tr = tb.insertRow(); tr.innerHTML = `<td></td><td></td><td class="r">${own.toFixed(1)}</td><td class="r">${tot.toFixed(1)}</td>`; tr.cells[0].textContent = m; tr.cells[1].textContent = from; }
+  const et = document.getElementById("elotable");
+  for (const [rows, tribe] of [[BARDUR, "Bardur"], [OUMAJI, "Oumaji"]]) for (const r of rows) {
+    const tr = et.insertRow(); if (r[0] === "Legion2") tr.className = "hl";
+    tr.innerHTML = `<td></td><td></td><td class="r">${fmt(r[2])}</td><td class="r">${r[3] ? `${fmt(r[3])}–${fmt(r[4])}` : "anchor"}</td><td class="r">${fmt(r[5])}</td>`;
+    tr.cells[0].textContent = tribe === "Oumaji" ? `${r[0]} (as Oumaji)` : r[0]; tr.cells[1].textContent = KIND[r[1]];
+  }
+
+  // ------------------------------------------------------------ charts (SVG, drawn at the container's width)
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, at, parent, text) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (text !== undefined) e.textContent = text; if (parent) parent.appendChild(e); return e; };
+  function tipFor(plot) {
+    let t = plot.querySelector(".tip"); if (!t) { t = document.createElement("div"); t.className = "tip"; t.hidden = true; plot.appendChild(t); }
+    return { show(html, x, y) { t.innerHTML = html; t.hidden = false; const w = plot.clientWidth, tw = t.offsetWidth; t.style.left = Math.max(0, Math.min(w - tw, x - tw / 2)) + "px"; t.style.top = (y - t.offsetHeight - 10) + "px"; }, hide() { t.hidden = true; } };
+  }
+  const tipHtml = (r, tribe) => `<b></b><br><span class="m">${fmt(r[2])}</span> Elo · ${r[3] ? `range <span class="m">${fmt(r[3])}–${fmt(r[4])}</span>` : "anchor"}<br>${fmt(r[5])} games · ${KIND[r[1]]}${tribe ? " · as Oumaji" : ""}`;
+  function legend(id, kinds, oumaji) {
+    const lg = document.getElementById(id); lg.innerHTML = "";
+    for (const k of kinds) { const s = document.createElement("span"); const i = document.createElement("i"); i.style.background = colorOf(k, oumaji); s.append(i, KIND[k]); lg.appendChild(s); }
+  }
+  function ladder(id, rows, lo, hi, oumaji) {
+    const plot = document.getElementById(id); plot.querySelectorAll("svg").forEach((s) => s.remove());
+    const W = plot.clientWidth; if (!W) return;
+    const narrow = W < 560, labW = narrow ? 0 : Math.min(250, W * .36), rowH = narrow ? 40 : 26, top = 6, axisH = 26;
+    const x0 = labW + 8, x1 = W - 44, H = top + rows.length * rowH + axisH;
+    const sx = (v) => x0 + (v - lo) / (hi - lo) * (x1 - x0);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": `${rows.length} models, Elo from ${fmt(rows[rows.length - 1][2])} to ${fmt(rows[0][2])}` });
+    for (let v = lo; v <= hi; v += narrow ? 200 : 100) { el("line", { x1: sx(v), x2: sx(v), y1: top, y2: H - axisH + 4, class: "grid" }, svg); el("text", { x: sx(v), y: H - 6, "text-anchor": "middle" }, svg, fmt(v)); }
+    const tip = tipFor(plot);
+    rows.forEach((r, i) => {
+      const y = top + i * rowH + (narrow ? 27 : rowH / 2), col = colorOf(r[1], oumaji), hl = r[0] === "Legion2" || r[0].startsWith("Legion+ update 338");
+      const g = el("g", { class: "row", tabindex: 0, "aria-label": `${r[0]}: ${r[2]} Elo` }, svg);
+      el("rect", { class: "hit", x: 0, y: top + i * rowH, width: W, height: rowH, rx: 4 }, g);
+      if (narrow) el("text", { x: 0, y: y - 12, class: "lab" + (hl ? " hl" : "") }, g, r[0]);
+      else el("text", { x: labW, y: y + 4, "text-anchor": "end", class: "lab" + (hl ? " hl" : "") }, g, r[0]);
+      if (r[3]) { el("line", { x1: sx(r[3]), x2: sx(r[4]), y1: y, y2: y, stroke: col, "stroke-width": 2, "stroke-linecap": "round", opacity: .55 }, g); }
+      if (r[1] === "scripted") el("rect", { x: sx(r[2]) - 5, y: y - 5, width: 10, height: 10, fill: col, stroke: css("--panel"), "stroke-width": 2, transform: `rotate(45 ${sx(r[2])} ${y})` }, g);
+      else el("circle", { cx: sx(r[2]), cy: y, r: hl ? 6 : 4.5, fill: col, stroke: css("--panel"), "stroke-width": 2 }, g);
+      el("text", { x: sx(r[4] || r[2]) + 8, y: y + 4, class: "val" }, g, fmt(r[2]));
+      const on = () => { tip.show(tipHtml(r, oumaji), sx(r[2]), y); plot.querySelector(".tip b").textContent = r[0] + (r[6] ? `. ${r[6]}` : ""); };
+      g.addEventListener("mouseenter", on); g.addEventListener("focus", on); g.addEventListener("mouseleave", tip.hide); g.addEventListener("blur", tip.hide);
+    });
+    plot.prepend(svg);
+  }
+  function progress() {
+    const plot = document.getElementById("ch-progress"); plot.querySelectorAll("svg").forEach((s) => s.remove());
+    const W = plot.clientWidth; if (!W) return;
+    const H = 240, l = 46, r = 18, t = 12, b = 34, lo = 1100, hi = 1400, h0 = 13, h1 = 25;
+    const sx = (v) => l + (v - h0) / (h1 - h0) * (W - l - r), sy = (v) => t + (hi - v) / (hi - lo) * (H - t - b);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": "Legion+ Elo rises from 1,152 to 1,313 between 13.9 and 24 CPU hours" });
+    for (let v = lo; v <= hi; v += 100) { el("line", { x1: l, x2: W - r, y1: sy(v), y2: sy(v), class: "grid" }, svg); el("text", { x: l - 8, y: sy(v) + 4, "text-anchor": "end" }, svg, fmt(v)); }
+    for (let h = 14; h <= 24; h += 2) el("text", { x: sx(h), y: H - 12, "text-anchor": "middle" }, svg, h + "h");
+    const col = css("--c-oumaji");
+    const band = PROGRESS.map((p) => `${sx(p[1])},${sy(p[4])}`).concat(PROGRESS.slice().reverse().map((p) => `${sx(p[1])},${sy(p[3])}`)).join(" ");
+    el("polygon", { points: band, fill: col, opacity: .14 }, svg);
+    el("polyline", { points: PROGRESS.map((p) => `${sx(p[1])},${sy(p[2])}`).join(" "), fill: "none", stroke: col, "stroke-width": 2, "stroke-linejoin": "round" }, svg);
+    const tip = tipFor(plot);
+    PROGRESS.forEach((p, i) => {
+      const g = el("g", { class: "row", tabindex: 0, "aria-label": `${p[0]}: ${p[2]} Elo at ${p[1]} hours` }, svg);
+      el("circle", { cx: sx(p[1]), cy: sy(p[2]), r: 14, class: "hit" }, g);
+      el("circle", { cx: sx(p[1]), cy: sy(p[2]), r: i === PROGRESS.length - 1 ? 6 : 4.5, fill: col, stroke: css("--panel"), "stroke-width": 2 }, g);
+      const on = () => { tip.show(`<b></b><br><span class="m">${fmt(p[2])}</span> Elo · range <span class="m">${fmt(p[3])}–${fmt(p[4])}</span><br>${p[1]} CPU hours in total`, sx(p[1]), sy(p[2])); plot.querySelector(".tip b").textContent = p[0]; };
+      g.addEventListener("mouseenter", on); g.addEventListener("focus", on); g.addEventListener("mouseleave", tip.hide); g.addEventListener("blur", tip.hide);
+    });
+    const last = PROGRESS[PROGRESS.length - 1], first = PROGRESS[0];
+    el("text", { x: sx(last[1]) - 10, y: sy(last[2]) - 12, "text-anchor": "end", class: "val" }, svg, `${fmt(last[2])} now`);
+    el("text", { x: sx(first[1]) + 10, y: sy(first[2]) + 18, class: "val" }, svg, `${fmt(first[2])} at start`);
+    plot.prepend(svg);
+  }
+  function drawCharts() {
+    if (document.getElementById("page-benchmarks").hidden) return;
+    legend("lg-bardur", ["search", "net", "scripted"], false);
+    legend("lg-oumaji", ["search", "net"], true);
+    ladder("ch-bardur", BARDUR, 900, 1600, false);
+    ladder("ch-oumaji", OUMAJI, 1000, 1600, true);
+    progress();
+  }
+  new ResizeObserver(() => drawCharts()).observe(document.querySelector("#page-benchmarks .doc"));
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", drawCharts);
+  new MutationObserver(drawCharts).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  show();
 })();
 </script>
