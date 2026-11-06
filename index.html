@@ -582,7 +582,7 @@ table.data tr.hl td { font-weight: 600; }
       <div class="hero-copy">
         <div class="eyebrow">Reinforcement learning · The Battle of Polytopia</div>
         <h1 class="hero-title">PolyMind</h1>
-        <p class="hero-lede">A reinforcement-learning AI for one-on-one Polytopia. It plays on a rules engine rebuilt from public evidence, learns by self-play on ordinary CPUs, and checks its critical moves with a short lookahead search.</p>
+        <p class="hero-lede">A reinforcement-learning AI for one-on-one Polytopia. Played on a rules engine rebuilt from public evidence. Trained by self-play on ordinary CPUs. Critical moves checked with a short lookahead search.</p>
         <div class="hero-cta">
           <a class="btn primary" href="#methodology">How it works</a>
           <a class="btn ghost" href="#benchmarks">Benchmarks</a>
@@ -607,7 +607,7 @@ table.data tr.hl td { font-weight: 600; }
     <div class="band-in">
       <div class="band-head">
         <h2 id="h-explore">Inside PolyMind</h2>
-        <p>How the AI is built, how it was trained, why this game, and how strong it is.</p>
+        <p>Architecture, training, choice of game and measured strength.</p>
       </div>
       <div class="explore">
         <a class="xcard" href="#methodology">
@@ -633,7 +633,7 @@ table.data tr.hl td { font-weight: 600; }
     <div class="band-in ctasplit">
       <div>
         <h2 id="h-cta">Legion2, the strongest model</h2>
-        <p>Legion2 is the Alpha1 network with a lookahead that searches more positions before critical moves and judges them with a win-probability head. It is rated 1,498, about 500 Elo above the scripted expert.</p>
+        <p>The Alpha1 network with a wider lookahead before critical moves, judged by a win-probability head. Rated 1,498, about 500 Elo above the scripted expert.</p>
         <div class="hero-cta"><a class="btn primary" href="#benchmarks">See the benchmarks</a><a class="btn ghost" href="#training-process">Training process</a></div>
       </div>
       <img src="assets/board-midgame.webp" alt="A game in progress on the Training Ground board" width="1100" height="600" loading="lazy">
@@ -778,8 +778,8 @@ table.data tr.hl td { font-weight: 600; }
     <div class="pagehero-in">
       <div class="pagehero-copy">
       <div class="eyebrow">Methodology</div>
-      <h1>How PolyMind plays</h1>
-      <p class="lede">PolyMind is a rules engine, a neural network that reads the board and proposes moves, and a short search that double-checks the moves that matter. Strength is measured by Elo on games the AI never trained on.</p>
+      <h1>How PolyMind works</h1>
+      <p class="lede">A rules engine, a neural network that reads the board and proposes moves, and a short search that double-checks the moves that matter. Strength measured by Elo on games never seen in training.</p>
       </div>
       <div class="pagehero-fig"><b class="num">30,641</b><span>possible actions per step on the 11×11 map</span></div>
     </div>
@@ -795,49 +795,49 @@ table.data tr.hl td { font-weight: 600; }
       </ol>
 
     <h2>The target setting</h2>
-    <p>PolyMind aims at one competitive format and tries to play it faithfully:</p>
+    <p>Built for one competitive format, modelled as faithfully as possible:</p>
     <dl class="spec">
-      <dt>Mode</dt><dd>Might, one against one. You win by capturing the enemy capital.</dd>
+      <dt>Mode</dt><dd>Might, one against one. Won by capturing the enemy capital.</dd>
       <dt>Map</dt><dd>Tiny Drylands, 11×11 = 121 tiles, with no water.</dd>
-      <dt>Tribes</dt><dd>The AI plays Bardur, against any standard tribe. Legion+ is a separate model trained to play Oumaji.</dd>
+      <dt>Tribes</dt><dd>Bardur, against any standard tribe. Legion+: a separate model trained as Oumaji.</dd>
       <dt>Ruleset</dt><dd>Official_Rules_2: the official rules, minus Windmill, Sawmill, Forge or Market in places where they would do nothing. The current Elo ladder was played under Official_Rules_1.</dd>
     </dl>
 
     <h2>A rules engine built from evidence</h2>
-    <p>Polytopia has no public simulator, so the project wrote its own. It covers map generation, tribes, cities, economy, technology, units, combat, fog of war and victory. Every rule is recorded with its source and an evidence level, and a rule changes only when new evidence or an in-game check supports the change.</p>
-    <p>The browser version runs on a JavaScript port of the same engine. A test plays the Python and browser versions side by side and checks that they agree move for move.</p>
+    <p>Polytopia has no public simulator, so one was written from scratch. Covers map generation, tribes, cities, economy, technology, units, combat, fog of war and victory. Every rule recorded with its source and an evidence level, and changed only when new evidence or an in-game check supports it.</p>
+    <p>Browser version built on a JavaScript port of the same engine. Python and browser versions tested side by side for move-for-move agreement.</p>
 
     <h2>What the AI sees and does</h2>
-    <p>The network reads the board from one player's point of view, through the fog. Its input is 67 feature planes, one value per tile for things like terrain, units, cities and borders, plus a vector of global numbers such as stars and turn. The output is a score for every possible action. On the 11×11 map that is 30,641 actions. Illegal actions are masked out before a move is chosen, so the AI only ever picks legal moves.</p>
+    <p>Board read from one player's point of view, through the fog. Input: 67 feature planes, one value per tile for things like terrain, units, cities and borders, plus a vector of global numbers such as stars and turn. Output: a score for every possible action, 30,641 on the 11×11 map. Illegal actions masked out before each choice, so only legal moves are ever picked.</p>
 
     <h2>The network</h2>
-    <p>A residual convolutional network with 4 blocks of 64 channels. It has two outputs: a policy head that scores every action on every tile, and a value head that estimates how the game is going. The Legion models add a small head that estimates the probability of winning. Because the network is convolutional, it works on any map size.</p>
+    <p>A residual convolutional network with 4 blocks of 64 channels. Two outputs: a policy head scoring every action on every tile, and a value head estimating how the game is going. Legion models add a small win-probability head. Fully convolutional, so usable on any map size.</p>
 
     <h2>Search on critical moves</h2>
-    <p>Most moves come straight from the network. At critical decisions, such as several possible attacks, a Knight attack, or a capture with enemies nearby, the AI searches before it moves:</p>
+    <p>Most moves taken straight from the network. Critical decisions, such as several possible attacks, a Knight attack, or a capture with enemies nearby, searched first:</p>
     <ol class="steps">
-      <li>Take the network's top candidate moves.</li>
-      <li>Play out several continuations of the rest of its own turn after each one.</li>
-      <li>Score each resulting position with the value head.</li>
-      <li>Keep the network's own move unless another candidate scores clearly better.</li>
+      <li>Top candidate moves taken from the network.</li>
+      <li>Several continuations of the rest of the turn played out after each.</li>
+      <li>Each resulting position scored by the value head.</li>
+      <li>Network's own move kept unless another candidate scores clearly better.</li>
     </ol>
-    <p>Lookahead copies of the game cannot see through the fog, so the search never uses hidden information. A gate decides which positions are critical enough to search. Legion2, the strongest model, is Legion0 with a looser gate that searches more positions; it has no new weights of its own.</p>
+    <p>Lookahead copies cannot see through the fog, so no hidden information is used. A gate decides which positions are critical enough to search. Legion2, the strongest model: Legion0 with a looser gate, searching more positions, with no new weights of its own.</p>
 
     <h2>How strength is measured</h2>
     <ul class="checks">
-      <li><b>Held-out maps.</b> Map seeds reserved for final tests are never used for training or for choosing models.</li>
-      <li><b>Both seats.</b> Each map is played twice, once from each side, so a lucky start cancels out.</li>
-      <li><b>Mirror tribes.</b> Main ratings are Bardur against Bardur, so tribe strength doesn't skew them.</li>
+      <li><b>Held-out maps.</b> Map seeds reserved for final tests, never used for training or model selection.</li>
+      <li><b>Both seats.</b> Each map played twice, once from each side, so a lucky start cancels out.</li>
+      <li><b>Mirror tribes.</b> Main ratings from Bardur against Bardur, so tribe strength doesn't skew them.</li>
       <li><b>Elo with error bars.</b> A Bradley–Terry fit over every game, with the scripted expert fixed at 1,000 and 95% ranges from bootstrap resampling.</li>
     </ul>
     <p class="more"><a href="#benchmarks">See the benchmarks</a></p>
 
     <h2>Known limits</h2>
     <ul>
-      <li>Training games stop at turn 60 as a draw. The real game has no turn limit.</li>
+      <li>Training games stopped at turn 60 as a draw. No turn limit in the real game.</li>
       <li>Special tribes, water maps and peace treaties are not modelled.</li>
       <li>Some mechanics rest on conflicting or unverified sources.</li>
-      <li>All training runs on CPU.</li>
+      <li>All training run on CPU.</li>
     </ul>
     <a class="nextpage" href="#training-process"><span>Next</span><b>Training process</b><em>How each model was trained, from Champion to Legion2</em></a>
   </article>
@@ -850,7 +850,7 @@ table.data tr.hl td { font-weight: 600; }
       <div class="pagehero-copy">
       <div class="eyebrow">Training process</div>
       <h1>From a scripted bot to Legion2</h1>
-      <p class="lede">Each model starts from an earlier one. Training uses CPUs only, so the hours below are CPU hours, counted from the very first network.</p>
+      <p class="lede">Each model built on an earlier one. Trained on CPUs only; hours below are CPU hours, counted from the very first network.</p>
       </div>
       <div class="pagehero-fig"><b class="num">24h</b><span>of CPU training behind Legion+, the newest network</span></div>
     </div>
@@ -865,37 +865,37 @@ table.data tr.hl td { font-weight: 600; }
         <li style="--e:0.642"><span class="j-elo num">1,321</span><b>Alpha1</b><span>Fine-tuned main line · 13.9 h</span></li>
         <li style="--e:0.798"><span class="j-elo num">1,399</span><b>Alpha1+</b><span>Alpha1 plus lookahead search</span></li>
         <li style="--e:0.944"><span class="j-elo num">1,472</span><b>Legion0</b><span>Wider search, win-probability head</span></li>
-        <li class="top" style="--e:0.996"><span class="j-elo num">1,498</span><b>Legion2</b><span>Searches more positions · strongest</span></li>
+        <li class="top" style="--e:0.996"><span class="j-elo num">1,498</span><b>Legion2</b><span>Wider search · strongest</span></li>
       </ol>
     <h2>The stages</h2>
     <ol class="timeline">
       <li>
         <h3>Imitate a scripted expert</h3>
-        <p>A hand-written expert bot plays the game. The network first learns to copy its moves (behaviour cloning), then improves by playing itself with PPO, a standard reinforcement-learning method.</p>
+        <p>Network first trained to copy a hand-written expert bot (behaviour cloning), then improved through self-play with PPO, a standard reinforcement-learning method.</p>
       </li>
       <li>
         <h3>Courses and drills</h3>
-        <p>Short lessons teach single skills: an economy and vision course, combat drills, and set scenarios.</p>
+        <p>Single skills taught in short lessons: an economy and vision course, combat drills, and set scenarios.</p>
       </li>
       <li>
         <h3>Population-based training</h3>
-        <p>Several networks train side by side with different reward styles. After each generation they play a tournament; the weakest are replaced by copies of the best. The winner became <b>Champion</b>, at 9.7 CPU hours.</p>
+        <p>Several networks trained side by side with different reward styles. A tournament after each generation; the weakest replaced by copies of the best. Winner: <b>Champion</b>, at 9.7 CPU hours.</p>
       </li>
       <li>
         <h3>Exploiters and fine-tunes</h3>
-        <p>Specialist exploiters (a rush player and an economy player) are trained to find the main model's weak spots. The main line then trains against them: <b>Rushbreaker</b>, then <b>Alpha1</b> at 13.9 hours, then Alpha2 and Alpha3.</p>
+        <p>Specialist exploiters (a rush player and an economy player) trained to find the main model's weak spots. Main line then trained against them: <b>Rushbreaker</b>, then <b>Alpha1</b> at 13.9 hours, then Alpha2 and Alpha3.</p>
       </li>
       <li>
         <h3>Search on top</h3>
-        <p>Adding lookahead search to Alpha1 gave <b>Alpha1+</b>, which beat the scripted expert in 144 of 150 games. A wider search gate and a win-probability head gave <b>Legion0</b>, and searching more positions gave <b>Legion2</b>, the strongest model and the default opponent here.</p>
+        <p>Adding lookahead search to Alpha1 gave <b>Alpha1+</b>, which beat the scripted expert in 144 of 150 games. A wider search gate and a win-probability head gave <b>Legion0</b>; searching more positions gave <b>Legion2</b>, the strongest model.</p>
       </li>
       <li>
         <h3>Distilling search (in progress)</h3>
-        <p>AlphaPro tries to teach the network to play like the search without having to search. The first attempt did not beat Alpha1, so this work continues.</p>
+        <p>AlphaPro: the network trained to play like the search without searching. First attempt did not beat Alpha1; work continues.</p>
       </li>
       <li>
         <h3>Legion+: a second tribe</h3>
-        <p>Legion+ starts from Legion2's network and keeps training with PPO while playing <b>Oumaji</b>. It meets a mix of fixed models, the scripted expert, a random player and its own past selves. It has gained about 160 Elo as Oumaji over its starting point.</p>
+        <p>Started from Legion2's network and trained further with PPO as <b>Oumaji</b>. Opponents: a mix of fixed models, the scripted expert, a random player and its own past selves. About 160 Elo gained as Oumaji over its starting point.</p>
       </li>
     </ol>
 
@@ -921,7 +921,7 @@ table.data tr.hl td { font-weight: 600; }
     <p class="note">Total hours count every network the model was built on. Search adds no training time: Legion0 and Legion2 use Alpha1's network.</p>
 
     <h2>Games from people</h2>
-    <p>Games played in the Training Ground are saved so the AI can learn from human play. A pilot model trained partly on them reached 1,345 Elo. These games are kept private and are never published.</p>
+    <p>Games played in the Training Ground saved for learning from human play. A pilot model trained partly on them reached 1,345 Elo. Kept private, never published.</p>
     <a class="nextpage" href="#why-polytopia"><span>Next</span><b>Why Polytopia</b><em>What makes this game a good test for AI</em></a>
   </article>
 </section>
@@ -935,7 +935,7 @@ table.data tr.hl td { font-weight: 600; }
       <h1>A whole strategy game in a short match</h1>
       <p class="lede">The Battle of Polytopia is a turn-based strategy game by Midjiwan. In one small match you grow an economy, research technology, expand and fight. That makes it a hard problem for AI that is still small enough to study without a data centre.</p>
       </div>
-      <div class="pagehero-fig"><b class="num">121</b><span>tiles on the Tiny Drylands map PolyMind plays</span></div>
+      <div class="pagehero-fig"><b class="num">121</b><span>tiles on the Tiny Drylands map</span></div>
     </div>
   </div>
   <article class="doc">
@@ -943,11 +943,11 @@ table.data tr.hl td { font-weight: 600; }
     <div class="reasons">
       <section>
         <h2>Many decisions in one turn</h2>
-        <p>A turn is not one move. Every unit can move and attack, every city can train, and you can research and build in any order. On the 11×11 map the AI chooses among 30,641 possible actions at every step, and only a few are legal at any moment.</p>
+        <p>A turn is not one move. Every unit can move and attack, every city can train, and you can research and build in any order. On the 11×11 map: 30,641 possible actions at every step, only a few legal at any moment.</p>
       </section>
       <section>
         <h2>You can't see the whole map</h2>
-        <p>Fog of war hides the enemy until you explore. The AI has to scout, guess and plan with partial information, as a person does.</p>
+        <p>Fog of war hides the enemy until you explore. Scouting, guessing and planning with partial information, as a person does.</p>
       </section>
       <section>
         <h2>Economy, tech and war at once</h2>
@@ -970,7 +970,7 @@ table.data tr.hl td { font-weight: 600; }
     <figure class="boardfig"><img src="assets/board-endgame.webp" alt="A finished Training Ground game: Imperius in teal has taken Bardur's red capital" width="1100" height="600" loading="lazy"><figcaption>A finished Training Ground game, whole map revealed. Every city, unit and border is a decision someone made.</figcaption></figure>
 
     <h2>The research problem</h2>
-    <p>There is no official simulator or API. Before any learning, the rules had to be rebuilt and checked against the real game, so rules fidelity is part of the research. PolyMind measures its progress the same way throughout: Elo on held-out maps, from both seats.</p>
+    <p>There is no official simulator or API. Before any learning, the rules had to be rebuilt and checked against the real game, so rules fidelity is part of the research. Progress measured the same way throughout: Elo on held-out maps, from both seats.</p>
     <p class="note">PolyMind is an independent project and is not affiliated with or endorsed by Midjiwan.</p>
     <a class="nextpage" href="#benchmarks"><span>Next</span><b>Benchmarks</b><em>The Elo ladder, with error bars</em></a>
   </article>
@@ -983,7 +983,7 @@ table.data tr.hl td { font-weight: 600; }
       <div class="pagehero-copy">
       <div class="eyebrow">Benchmarks</div>
       <h1>Elo ladder</h1>
-      <p class="lede">Models play each other on held-out maps from both seats. Ratings come from one Bradley–Terry fit over all games, with the scripted expert fixed at 1,000. Bars show 95% ranges. Refit on 4 November 2026.</p>
+      <p class="lede">Models played against each other on held-out maps from both seats. Ratings from one Bradley–Terry fit over all games, with the scripted expert fixed at 1,000. Bars show 95% ranges. Refit on 4 November 2026.</p>
       </div>
       <div class="pagehero-fig"><b class="num">1,498</b><span>Elo of Legion2, the strongest model</span></div>
     </div>
@@ -2674,11 +2674,11 @@ table.data tr.hl td { font-weight: 600; }
   }
   if (net && !hasWin && $("opp").value.startsWith("legion")) $("opp").value = "search";
   const OPP_DESC = {
-    legion2: "The strongest bot. The Alpha1 network looks ahead before most decisions and judges positions by its chance of winning.",
-    legion0: "Alpha1 with a wide lookahead judged by win probability. It searches fewer decisions than Legion2.",
-    search: "Alpha1 with a short lookahead. It beat the scripted expert in 144 of 150 games.",
-    network: "The Alpha1 network playing on instinct, without lookahead. Quick to move.",
-    expert: "A hand-written rule-based bot. The easiest opponent, good for learning the rules.",
+    legion2: "The strongest bot. Alpha1 network with lookahead before most decisions, positions judged by chance of winning.",
+    legion0: "Alpha1 with a wide lookahead judged by win probability. Fewer decisions searched than Legion2.",
+    search: "Alpha1 with a short lookahead. Beat the scripted expert in 144 of 150 games.",
+    network: "Alpha1 network alone, without lookahead. Quick to move.",
+    expert: "Hand-written rule-based bot. The easiest opponent, good for learning the rules.",
   };
   // the opponents' Elo from the 4 Nov ladder, the current game's opponent marked
   const OPP_ELO = [["legion2", "Legion2", 1498], ["legion0", "Legion0", 1472], ["search", "Alpha1+", 1399], ["network", "Alpha1, no lookahead", 1321], ["expert", "Scripted expert", 1000]];
